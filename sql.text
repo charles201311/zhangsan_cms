@@ -1,0 +1,12 @@
+
+
+-- 创建自定义函数  -用来获取发布文章到当前的时间差
+create function cms_datediff(id int) returns VARCHAR(50)
+begin 
+ DECLARE d VARCHAR(50) ;
+   select CONCAT(IF(TIMESTAMPDIFF(MINUTE,now(),created)=0,'',CONCAT(TIMESTAMPDIFF(MINUTE,created,now()), '分钟前')),
+IF(TIMESTAMPDIFF(HOUR,created,now())=0,'',CONCAT(TIMESTAMPDIFF(HOUR,created,now()), '小时前')) ,
+
+IF(TIMESTAMPDIFF(DAY,created,now())=0,'',CONCAT(TIMESTAMPDIFF(DAY,created,now()), '天前'))) from cms_article where id =id into d;
+return d;
+end;

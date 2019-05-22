@@ -1,0 +1,300 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zhangsan.cms.dao.CmsArticleMapper">
+	<resultMap id="BaseResultMap"
+		type="com.zhangsan.cms.domain.CmsArticle">
+		<id column="id" property="id" jdbcType="INTEGER" />
+		<result column="title" property="title" jdbcType="VARCHAR" />
+		<result column="picture" property="picture" jdbcType="VARCHAR" />
+		<result column="channel_id" property="channelId"
+			jdbcType="INTEGER" />
+		<result column="category_id" property="categoryId"
+			jdbcType="INTEGER" />
+		<result column="user_id" property="userId" jdbcType="INTEGER" />
+		<result column="hits" property="hits" jdbcType="INTEGER" />
+		<result column="hot" property="hot" jdbcType="INTEGER" />
+		<result column="status" property="status" jdbcType="INTEGER" />
+		<result column="deleted" property="deleted" jdbcType="INTEGER" />
+		<result column="created" property="created"
+			jdbcType="TIMESTAMP" />
+		<result column="updated" property="updated"
+			jdbcType="TIMESTAMP" />
+	</resultMap>
+	<resultMap id="ResultMapWithBLOBs"
+		type="com.zhangsan.cms.domain.CmsArticle" extends="BaseResultMap">
+		<result column="content" property="content"
+			jdbcType="LONGVARCHAR" />
+	</resultMap>
+
+
+	<sql id="Base_Column_List">
+		id, title, picture, channel_id, category_id, user_id, hits, hot, status,
+		deleted,
+		created, updated
+	</sql>
+	<sql id="Blob_Column_List">
+		content
+	</sql>
+	<select id="selectArticleList" resultType="map">
+		select a.*, c.`name` as cname, cat.`name` as catname,u.username  ,CONCAT(
+IF(TIMESTAMPDIFF(DAY,created,now())=0,'', IF(TIMESTAMPDIFF(DAY,created,now())>=24,TIMESTAMPDIFF(DAY,created,now()) mod 24,
+ CONCAT(TIMESTAMPDIFF(DAY,created,now()), '天'))),
+IF(TIMESTAMPDIFF(HOUR,created,now())=0,'', IF(TIMESTAMPDIFF(HOUR,created,now())>=60,CONCAT(TIMESTAMPDIFF(MINUTE,created,now()) mod 60 ,'小时'), CONCAT(TIMESTAMPDIFF(HOUR,created,now()), '小时')))
+,
+
+IF(TIMESTAMPDIFF(MINUTE,created,now())=0,'', IF(TIMESTAMPDIFF(MINUTE,created,now())>=60,CONCAT(TIMESTAMPDIFF(MINUTE,created,now()) mod 60 ,'分钟'), CONCAT(TIMESTAMPDIFF(MINUTE,created,now()), '分钟')))
+) as mytime from
+		cms_article a LEFT JOIN cms_channel c on a.channel_id=c.id LEFT JOIN
+		cms_category cat on a.category_id =cat.id LEFT JOIN cms_user u ON
+		a.user_id =u.id
+		
+		<where>
+		 <if test="channelId!=null and channelId!=''">
+		  a.channel_id =#{channelId}
+		 </if>
+		 <if test="catId!=null and catId!=''">
+		  and a.category_id =#{catId}
+		 </if>
+		  <if test="status!=null and status!=''">
+		 and  a.status =#{status}
+		 </if>
+		
+		</where>
+		
+		order by a.created desc
+
+	</select>
+
+
+
+	<select id="selectArticleByHot" resultType="map">
+
+		select a.* ,u.username  ,CONCAT(
+IF(TIMESTAMPDIFF(DAY,created,now())=0,'', IF(TIMESTAMPDIFF(DAY,created,now())>=24,TIMESTAMPDIFF(DAY,created,now()) mod 24,
+ CONCAT(TIMESTAMPDIFF(DAY,created,now()), '天'))),
+IF(TIMESTAMPDIFF(HOUR,created,now())=0,'', IF(TIMESTAMPDIFF(HOUR,created,now())>=60,CONCAT(TIMESTAMPDIFF(MINUTE,created,now()) mod 60 ,'小时'), CONCAT(TIMESTAMPDIFF(HOUR,created,now()), '小时')))
+,
+
+IF(TIMESTAMPDIFF(MINUTE,created,now())=0,'', IF(TIMESTAMPDIFF(MINUTE,created,now())>=60,CONCAT(TIMESTAMPDIFF(MINUTE,created,now()) mod 60 ,'分钟'), CONCAT(TIMESTAMPDIFF(MINUTE,created,now()), '分钟')))
+) as mytime from cms_article  a left join  cms_user u on a.user_id =u.id where hot=1 and status=1
+	order by a.created desc
+	</select>
+
+
+	<select id="selectArticleByChannel" resultType="map">
+
+		select a.* ,u.username  ,CONCAT(
+IF(TIMESTAMPDIFF(DAY,created,now())=0,'', IF(TIMESTAMPDIFF(DAY,created,now())>=24,TIMESTAMPDIFF(DAY,created,now()) mod 24,
+ CONCAT(TIMESTAMPDIFF(DAY,created,now()), '天'))),
+IF(TIMESTAMPDIFF(HOUR,created,now())=0,'', IF(TIMESTAMPDIFF(HOUR,created,now())>=60,CONCAT(TIMESTAMPDIFF(MINUTE,created,now()) mod 60 ,'小时'), CONCAT(TIMESTAMPDIFF(HOUR,created,now()), '小时')))
+,
+
+IF(TIMESTAMPDIFF(MINUTE,created,now())=0,'', IF(TIMESTAMPDIFF(MINUTE,created,now())>=60,CONCAT(TIMESTAMPDIFF(MINUTE,created,now()) mod 60 ,'分钟'), CONCAT(TIMESTAMPDIFF(MINUTE,created,now()), '分钟')))
+) as mytime
+ from cms_article  a left join  cms_user u on a.user_id =u.id where channel_id=#{cid} and status=1
+	order by a.created desc
+	</select>
+
+
+
+	<select id="selectArticleByCategory" resultType="map">
+      <!-- 只显示审核通过的文章 -->
+		select a.*,u.username ,'1分钟'  as mytime from cms_article a  left join  cms_user u on a.user_id =u.id where category_id=#{catId} and status=1
+	order by a.created desc
+	</select>
+
+   <select id="selectByid" resultType="map">
+  	select a.*, c.`name` as cname, cat.`name` as catname,u.username ,CONCAT(
+IF(TIMESTAMPDIFF(DAY,created,now())=0,'', IF(TIMESTAMPDIFF(DAY,created,now())>=24,TIMESTAMPDIFF(DAY,created,now()) mod 24,
+ CONCAT(TIMESTAMPDIFF(DAY,created,now()), '天'))),
+IF(TIMESTAMPDIFF(HOUR,created,now())=0,'', IF(TIMESTAMPDIFF(HOUR,created,now())>=60,CONCAT(TIMESTAMPDIFF(MINUTE,created,now()) mod 60 ,'小时'), CONCAT(TIMESTAMPDIFF(HOUR,created,now()), '小时')))
+,
+
+IF(TIMESTAMPDIFF(MINUTE,created,now())=0,'', IF(TIMESTAMPDIFF(MINUTE,created,now())>=60,CONCAT(TIMESTAMPDIFF(MINUTE,created,now()) mod 60 ,'分钟'), CONCAT(TIMESTAMPDIFF(MINUTE,created,now()), '分钟')))
+) as mytime from
+		cms_article a LEFT JOIN cms_channel c on a.channel_id=c.id LEFT JOIN
+		cms_category cat on a.category_id =cat.id LEFT JOIN cms_user u ON
+		a.user_id =u.id
+		where a.id=#{id}	
+			order by a.created desc
+   </select>
+
+	<select id="selectByPrimaryKey" resultMap="ResultMapWithBLOBs"
+		parameterType="java.lang.Integer">
+		select
+		<include refid="Base_Column_List" />
+	 ,
+		<include refid="Blob_Column_List" />
+		from cms_article 
+		where id = #{id,jdbcType=INTEGER}
+	</select>
+	<!-- 包含文章的作者等信息 -->
+	
+	
+	
+	
+	<delete id="deleteByPrimaryKey"
+		parameterType="java.lang.Integer">
+		delete from cms_article
+		where id = #{id,jdbcType=INTEGER}
+	</delete>
+	<insert id="insert"
+		parameterType="com.zhangsan.cms.domain.CmsArticle">
+		insert into cms_article (id, title, picture,
+		channel_id, category_id, user_id,
+		hits, hot, status,
+		deleted, created, updated,
+		content)
+		values (#{id,jdbcType=INTEGER}, #{title,jdbcType=VARCHAR},
+		#{picture,jdbcType=VARCHAR},
+		#{channelId,jdbcType=INTEGER}, #{categoryId,jdbcType=INTEGER}, #{userId,jdbcType=INTEGER},
+		#{hits,jdbcType=INTEGER}, #{hot,jdbcType=INTEGER},
+		#{status,jdbcType=INTEGER},
+		#{deleted,jdbcType=INTEGER}, #{created,jdbcType=TIMESTAMP}, #{updated,jdbcType=TIMESTAMP},
+		#{content,jdbcType=LONGVARCHAR})
+	</insert>
+	<insert id="insertSelective"
+		parameterType="com.zhangsan.cms.domain.CmsArticle">
+		insert into cms_article
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				id,
+			</if>
+			<if test="title != null">
+				title,
+			</if>
+			<if test="picture != null">
+				picture,
+			</if>
+			<if test="channelId != null">
+				channel_id,
+			</if>
+			<if test="categoryId != null">
+				category_id,
+			</if>
+			<if test="userId != null">
+				user_id,
+			</if>
+			<if test="hits != null">
+				hits,
+			</if>
+			<if test="hot != null">
+				hot,
+			</if>
+				status,
+				deleted,
+			created,
+			updated,
+			<if test="content != null">
+				content,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				#{id,jdbcType=INTEGER},
+			</if>
+			<if test="title != null">
+				#{title,jdbcType=VARCHAR},
+			</if>
+			<if test="picture != null">
+				#{picture,jdbcType=VARCHAR},
+			</if>
+			<if test="channelId != null">
+				#{channelId,jdbcType=INTEGER},
+			</if>
+			<if test="categoryId != null">
+				#{categoryId,jdbcType=INTEGER},
+			</if>
+			<if test="userId != null">
+				#{userId,jdbcType=INTEGER},
+			</if>
+			<if test="hits != null">
+				#{hits,jdbcType=INTEGER},
+			</if>
+			<if test="hot != null">
+				#{hot,jdbcType=INTEGER},
+			</if>
+			<!-- 文章状态 默认0: -1:不通过，1:通过 -->
+			0,
+			<!-- 是否删除 0:失效 1:有效 ,默认1 使用逻辑删除 -->
+			1,
+			<!-- 使用系统时间 -->
+			now(),
+			now(),
+			<if test="content != null">
+				#{content,jdbcType=LONGVARCHAR},
+			</if>
+		</trim>
+	</insert>
+	<update id="updateByPrimaryKeySelective"
+		parameterType="com.zhangsan.cms.domain.CmsArticle">
+		update cms_article
+		<set>
+			<if test="title != null">
+				title = #{title,jdbcType=VARCHAR},
+			</if>
+			<if test="picture != null">
+				picture = #{picture,jdbcType=VARCHAR},
+			</if>
+			<if test="channelId != null">
+				channel_id = #{channelId,jdbcType=INTEGER},
+			</if>
+			<if test="categoryId != null">
+				category_id = #{categoryId,jdbcType=INTEGER},
+			</if>
+			<if test="userId != null">
+				user_id = #{userId,jdbcType=INTEGER},
+			</if>
+			<if test="hits != null">
+				hits = #{hits,jdbcType=INTEGER},
+			</if>
+			<if test="hot != null">
+				hot = #{hot,jdbcType=INTEGER},
+			</if>
+			<if test="status != null">
+				status = #{status,jdbcType=INTEGER},
+			</if>
+			<if test="deleted != null">
+				deleted = #{deleted,jdbcType=INTEGER},
+			</if>
+			updated = now(),
+			<if test="content != null">
+				content = #{content,jdbcType=LONGVARCHAR},
+			</if>
+		</set>
+		where id = #{id,jdbcType=INTEGER}
+	</update>
+	<update id="updateByPrimaryKeyWithBLOBs"
+		parameterType="com.zhangsan.cms.domain.CmsArticle">
+		update cms_article
+		set title = #{title,jdbcType=VARCHAR},
+		picture = #{picture,jdbcType=VARCHAR},
+		channel_id = #{channelId,jdbcType=INTEGER},
+		category_id = #{categoryId,jdbcType=INTEGER},
+		user_id = #{userId,jdbcType=INTEGER},
+		hits = #{hits,jdbcType=INTEGER},
+		hot = #{hot,jdbcType=INTEGER},
+		status = #{status,jdbcType=INTEGER},
+		deleted = #{deleted,jdbcType=INTEGER},
+		created = #{created,jdbcType=TIMESTAMP},
+		updated = #{updated,jdbcType=TIMESTAMP},
+		content = #{content,jdbcType=LONGVARCHAR}
+		where id = #{id,jdbcType=INTEGER}
+	</update>
+	<update id="updateByPrimaryKey"
+		parameterType="com.zhangsan.cms.domain.CmsArticle">
+		update cms_article
+		set title = #{title,jdbcType=VARCHAR},
+		picture = #{picture,jdbcType=VARCHAR},
+		channel_id = #{channelId,jdbcType=INTEGER},
+		category_id = #{categoryId,jdbcType=INTEGER},
+		user_id = #{userId,jdbcType=INTEGER},
+		hits = #{hits,jdbcType=INTEGER},
+		hot = #{hot,jdbcType=INTEGER},
+		status = #{status,jdbcType=INTEGER},
+		deleted = #{deleted,jdbcType=INTEGER},
+		created = #{created,jdbcType=TIMESTAMP},
+		updated = #{updated,jdbcType=TIMESTAMP}
+		where id = #{id,jdbcType=INTEGER}
+	</update>
+</mapper>

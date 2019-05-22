@@ -1,0 +1,11 @@
+1. 把kindeditor放到 resource/下
+2.修改文件上传路径 .kindedtior/jsp/upload_json.jsp
+
+String savePath ="d:/pic/";
+String saveUrl  = request.getContextPath() + "/pic/";
+3.修改demo页面中
+
+ 3.1 修改引入的js,css的路径. 改成绝对路径
+ 3.2 根据业务情况,增加其他的字段
+4.\kindeditor-4.1.11-zh-CN\kindeditor\jsp\lib jar放入tomcat/lib
+下.重启tomcat
